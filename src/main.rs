@@ -1,23 +1,26 @@
 use reqwest::blocking::get;
+use std::io::{self, Write};
+use std::fs::File;
 
-fn main() -> Result<(), reqwest::Error>{
-    let resp = get("https://www.rust-lang.org")?;
+fn main() -> Result<(), Box<dyn  std::error::Error>> {
+    let mut url = String::from("");
+    print!("Enter url: ");
+    io::stdout().flush()?;
+    io::stdin().read_line(&mut url)?;
 
-    if resp.status().is_success() {
-        println!("Success!");
-        println!("Status: {}", resp.status());
-        // let body = resp.text()?;
+    let url = url.trim();
 
-        // println!("Response Body: {}", body);
-        let c = match resp.content_length() {
-            Some(data) => data,
-            None => 0,
-        };
-        println!("Content length: {}", c);
-    } else if resp.status().is_server_error() {
-        println!("server error!");
-    } else {
-        println!("Something else happened. Status: {:?}", resp.status());
-    }
+    let mut file_name = String::from("");
+    print!("Enter file name: ");
+    io::stdout().flush()?;
+    io::stdin().read_line(&mut file_name)?;
+
+    let mut resp = get(url)?;
+    // let mut text = resp.bytes()?; 
+    
+    let mut dwld = File::create(format!("{}.txt", file_name))?;
+
+    io::copy(&mut resp, &mut dwld)?;
+    println!("Download complete.");
     Ok(())
 }
